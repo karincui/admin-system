@@ -76,14 +76,19 @@ export async function apiLogin(username: string, password: string) {
   return json.data;
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
+async function apiRequest<T>(
+  path: string,
+  init?: RequestInit
+): Promise<T> {
   const token = getToken();
   if (!token) throw new Error("未登录");
 
   const res = await fetch(`${getApiBase()}${path}`, {
+    ...init,
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      ...(init?.headers || {}),
     },
     cache: "no-store",
   });
@@ -93,9 +98,41 @@ export async function apiGet<T>(path: string): Promise<T> {
     throw new Error("登录已失效");
   }
 
-  const json = (await res.json()) as ApiResponse<T>;
-  if (!res.ok || json.code !== 0) {
-    throw new Error(json.message || `请求失败(${res.status})`);
+  let json: ApiResponse<T> | null = null;
+  try {
+    json = (await res.json()) as ApiResponse<T>;
+  } catch {
+    throw new Error(`请求失败(${res.status})`);
+  }
+
+  if (res.status === 403) {
+    throw new Error(json?.message || "无权限访问");
+  }
+
+  if (!res.ok || !json || json.code !== 0) {
+    throw new Error(json?.message || `请求失败(${res.status})`);
   }
   return json.data;
+}
+
+export async function apiGet<T>(path: string): Promise<T> {
+  return apiRequest<T>(path, { method: "GET" });
+}
+
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  return apiRequest<T>(path, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export interface CreateUserPayload {
+  username: string;
+  password: string;
+  nickname?: string;
+  role?: "ADMIN" | "USER";
+}
+
+export async function createUser(payload: CreateUserPayload) {
+  return apiPost<BackendUser>("/api/users", payload);
 }
