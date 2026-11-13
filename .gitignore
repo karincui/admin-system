@@ -1,0 +1,26 @@
+# frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env
+frontend/.env.local
+frontend/.env*.local
+!frontend/.env.example
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+frontend/.next/
+
+# backend
+backend/target/
+backend/.idea/
+backend/*.iml
+backend/.env
+backend/*.log
+
+# common
+.DS_Store
+.vscode/
+.idea/
+*.log
+.env
+.env.local

@@ -1,0 +1,26 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: karin-mysql
+    restart: unless-stopped
+    ports:
+      # 本机若已安装 MySQL 占用 3306，改用 3307 避免冲突
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: karin
+      MYSQL_USER: karin
+      MYSQL_PASSWORD: karin123
+      MYSQL_ROOT_PASSWORD: root123
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - karin-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  karin-mysql-data:
